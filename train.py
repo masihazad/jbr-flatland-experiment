@@ -59,7 +59,7 @@ if __name__ == "__main__":
     ))
     envs = [(PackOfAgents(RANDOM_SEED), 1)]
 
-    workers = 1
+    workers = 4
     exp = Experiment(
         opt_steps=10**10,
         episodes=100000,
