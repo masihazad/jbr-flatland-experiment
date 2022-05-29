@@ -41,7 +41,7 @@ if __name__ == "__main__":
     RANDOM_SEED = 23
     torch.set_printoptions(precision=6, sci_mode=False)
     logname = "tmp"
-    init_logger("logdir", logname, use_wandb=False)
+    init_logger("logdir", logname, use_wandb=True)
 
     timetable_config = JudgeConfig(
         window_size_generator=LinearOnAgentNumberSizeGenerator(0.0, 10**10),
