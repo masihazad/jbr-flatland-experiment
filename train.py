@@ -63,7 +63,7 @@ if __name__ == "__main__":
     exp = Experiment(
         opt_steps=10**10,
         episodes=100000,
-        device=torch.device("cpu"),
+        device=torch.device("gpu"),
         logname=logname,
         random_seed=RANDOM_SEED,
         env_config = EnvCurriculumSampleConfig(*zip(*envs),
