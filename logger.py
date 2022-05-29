@@ -24,7 +24,9 @@ class Logger():
         if logname.startswith("tmp") and os.path.exists(os.path.join(logdir, logname)):
             shutil.rmtree(os.path.join(logdir, logname))
         
-        assert(os.path.isdir(logdir))
+        # assert(os.path.isdir(logdir))
+        if not os.path.isdir(logdir):
+            os.mkdir(logdir)
         self.dir = os.path.join(logdir, logname)
         os.mkdir(self.dir)
 
