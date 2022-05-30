@@ -116,7 +116,8 @@ class PPOLearner():
         torch.save({'actor': actor_state_dict, 'critic': critic_state_dict},
                 os.path.join(model_path, 'controller.torch'))
 
-        state_dict = self.judge.get_net_params(device=torch.device("cpu"))
+        #state_dict = self.judge.get_net_params(device=torch.device("cpu"))
+        state_dict = self.judge.get_net_params(device=self.device)
         torch.save(state_dict, os.path.join(model_path, 'judge.torch'))
 
         artifact = log().wandb.Artifact(ep_path, type='model')
