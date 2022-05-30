@@ -111,13 +111,13 @@ class PPOLearner():
 
         torch.save(self.controller.params, os.path.join(model_path, "params.torch"))
         
-        # actor_state_dict, critic_state_dict, _ = self.controller.get_net_params(device=torch.device("cpu"))
-        actor_state_dict, critic_state_dict, _ = self.controller.get_net_params(device=self.device)
+        actor_state_dict, critic_state_dict, _ = self.controller.get_net_params(device=torch.device("cpu"))
+        # actor_state_dict, critic_state_dict, _ = self.controller.get_net_params(device=self.device)
         torch.save({'actor': actor_state_dict, 'critic': critic_state_dict},
                 os.path.join(model_path, 'controller.torch'))
 
-        #state_dict = self.judge.get_net_params(device=torch.device("cpu"))
-        state_dict = self.judge.get_net_params(device=self.device)
+        state_dict = self.judge.get_net_params(device=torch.device("cpu"))
+        # state_dict = self.judge.get_net_params(device=self.device)
         torch.save(state_dict, os.path.join(model_path, 'judge.torch'))
 
         artifact = log().wandb.Artifact(ep_path, type='model')
@@ -137,11 +137,11 @@ class PPOLearner():
         log().add_plot("judge_loss", ("episode", "train_steps", "judge_loss", "env"))
         log().add_plot("judge_threshold", ("episode", "train_steps", "judge_threshold", "env"))
 
-        # controller_params, judge_params = self.controller.get_net_params(device=torch.device("cpu")), \
-        #        self.judge.get_net_params(device=torch.device("cpu"))
+        controller_params, judge_params = self.controller.get_net_params(device=torch.device("cpu")), \
+                self.judge.get_net_params(device=torch.device("cpu"))
         
-        controller_params, judge_params = self.controller.get_net_params(device=self.device), \
-                self.judge.get_net_params(device=self.device)
+        # controller_params, judge_params = self.controller.get_net_params(device=self.device), \
+        #        self.judge.get_net_params(device=self.device)
         rollouts_list = [agent.run.remote(controller_params, judge_params) for agent in self.agents]
         cur_steps, cur_episode = 0, 0
         while True:
@@ -176,11 +176,11 @@ class PPOLearner():
             if cur_steps >= max_opt_steps or cur_episode >= max_episodes:
                 break
                 
-            # controller_params, judge_params = self.controller.get_net_params(device=torch.device("cpu")), \
-            #        self.judge.get_net_params(device=torch.device("cpu"))
+            controller_params, judge_params = self.controller.get_net_params(device=torch.device("cpu")), \
+                   self.judge.get_net_params(device=torch.device("cpu"))
             
-            controller_params, judge_params = self.controller.get_net_params(device=self.device), \
-                    self.judge.get_net_params(device=self.device)
+            # controller_params, judge_params = self.controller.get_net_params(device=self.device), \
+            #        self.judge.get_net_params(device=self.device)
             rollouts_list.extend([self.agents[info["handle"]].run.remote(controller_params, judge_params)])
 
         log().save_logs()
