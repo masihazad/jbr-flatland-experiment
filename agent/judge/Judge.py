@@ -192,7 +192,8 @@ class Judge():
         self.net.load_state_dict(model)
 
     def save_judge(self, dirpath, name="judge.torch"):
-        state_dict = self.get_net_params(device=torch.device("cpu"))
+        # state_dict = self.get_net_params(device=torch.device("cpu"))
+        state_dict = self.get_net_params(device=self.device)
         torch.save(state_dict, os.path.join(dirpath, name))
 
 
