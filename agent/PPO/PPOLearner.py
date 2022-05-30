@@ -134,8 +134,8 @@ class PPOLearner():
                 log().save_logs()
             if cur_episode % 20 == 0:                
                 date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
-                cont_checkpoint_name = 'controller' + str(cur_episode) + str(date) + '.torch'
-                judge_checkpoint_name = 'judge' + str(cur_episode) + str(date) + '.torch'
+                cont_checkpoint_name = 'controller' + str(cur_episode).zfill(6) + str(date) + '.torch'
+                judge_checkpoint_name = 'judge' + str(cur_episode).zfill(6) + str(date) + '.torch'
                 
                 # self.controller.save_controller(log().get_log_path(), "final_controller.torch")
                 self.controller.save_controller(log().get_log_path(), "controller" + date + ".torch")
