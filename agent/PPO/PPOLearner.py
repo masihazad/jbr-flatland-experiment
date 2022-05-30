@@ -15,8 +15,8 @@ from agent.PPO.PPOLosses import value_loss, policy_loss, value_loss_with_IS
 from agent.judge.Judge import Judge
 from logger import log
 
+import os
 from datetime import datetime
-import wandb
 
 class PPOLearner():
     def __init__(self, env_config, controller_config, n_workers, device):
@@ -24,8 +24,7 @@ class PPOLearner():
         self.controller = controller_config.create_controller(device)
         self.judge = env_config.env_configs[0].observation_builder_config.timetable_config.create_timetable() # ugly
         self.device = device
-        self.run = wandb.init(project='jbr-flatland-experiment')
-
+ 
         num_gpus = 0
         if device == torch.device("cuda"):
             num_gpus = 1
@@ -104,6 +103,29 @@ class PPOLearner():
 
         self.controller.soft_update(tau=0.05)
 
+    def save_model(self, ep):
+        date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
+        ep_path = str(date) + '-Ep-' + str(ep).zfill(6)    
+        model_path = os.path.join(log().dir, "models", '/', ep_path)
+        os.makedirs(model_path, exist_ok=True)
+
+        torch.save(self.controller.params, os.path.join(model_path, "params.torch"))
+        
+        actor_state_dict, critic_state_dict, _ = self.controller.get_net_params(device=torch.device("cpu"))
+        torch.save({'actor': actor_state_dict, 'critic': critic_state_dict},
+                os.path.join(model_path, 'controller.torch'))
+
+        state_dict = self.judge.get_net_params(device=torch.device("cpu"))
+        torch.save(state_dict, os.path.join(model_path, 'judge.torch'))
+
+        artifact = log().wandb.Artifact(ep_path, type='model')
+        artifact.add_file(model_path + '/' + 'params.torch')
+        artifact.add_file(model_path + '/' + 'controller.torch')
+        artifact.add_file(model_path + '/' + 'judge.torch')
+        log().wandb.log_artifact(artifact)
+        log().wandb.run
+
+
 
     def rollouts(self, max_opt_steps=10**10, max_episodes=10**10):
         log().add_plot("reward", ("train_episode", "train_steps", "reward", "env"))
@@ -132,27 +154,17 @@ class PPOLearner():
 
             if cur_episode % 100 == 0:
                 log().save_logs()
-            if cur_episode % 20 == 0:                
-                date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
-                cont_checkpoint_name = 'controller' + str(cur_episode).zfill(6) + str(date) + '.torch'
-                judge_checkpoint_name = 'judge' + str(cur_episode).zfill(6) + str(date) + '.torch'
-                
-                # self.controller.save_controller(log().get_log_path(), "final_controller.torch")
-                self.controller.save_controller(log().get_log_path(), cont_checkpoint_name)
-                # self.judge.save_judge(log().get_log_path(), cont_checkpoint_name)
-                self.judge.save_judge(log().get_log_path(), judge_checkpoint_name)
-                
-                artifact = wandb.Artifact('model', type='model')
-                artifact.add_file(log().get_log_path(), cont_checkpoint_name)
-                artifact.add_file(log().get_log_path(), judge_checkpoint_name)
-                self.run.log_artifact(artifact)
-                self.run.join()
+            if cur_episode % 4 == 0:                               
+                self.controller.save_controller(log().get_log_path(), cur_episode, 'final_controller.torch')
+                self.judge.save_judge(log().get_log_path(), cur_episode, 'final_judge.torch')
+                if log().use_wandb:
+                    self.save_model(cur_episode)
 
             if self.train_state.is_training():
                 self._optimize(rollout)
-                #  judge_info = self.judge.optimize(judge_rollout)
-                #  log().add_plot_point("judge_loss", (cur_episode, cur_steps, judge_info["loss"], info["env"]))
-                #  log().add_plot_point("judge_threshold", (cur_episode, cur_steps, info["judge_threshold"], info["env"]))
+                judge_info = self.judge.optimize(judge_rollout)
+                # log().add_plot_point("judge_loss", (cur_episode, cur_steps, judge_info["loss"], info["env"]))
+                # log().add_plot_point("judge_threshold", (cur_episode, cur_steps, info["judge_threshold"], info["env"]))
             
 
             self.train_state.step(self.controller, self.judge, info["reward"])
