@@ -138,15 +138,15 @@ class PPOLearner():
                 judge_checkpoint_name = 'judge' + str(cur_episode).zfill(6) + str(date) + '.torch'
                 
                 # self.controller.save_controller(log().get_log_path(), "final_controller.torch")
-                self.controller.save_controller(log().get_log_path(), "controller" + date + ".torch")
+                self.controller.save_controller(log().get_log_path(), cont_checkpoint_name)
                 # self.judge.save_judge(log().get_log_path(), cont_checkpoint_name)
                 self.judge.save_judge(log().get_log_path(), judge_checkpoint_name)
                 
                 artifact = wandb.Artifact('model', type='model')
                 artifact.add_file(log().get_log_path(), cont_checkpoint_name)
                 artifact.add_file(log().get_log_path(), judge_checkpoint_name)
-                run.log_artifact(artifact)
-                run.join()
+                self.run.log_artifact(artifact)
+                self.run.join()
 
             if self.train_state.is_training():
                 self._optimize(rollout)
