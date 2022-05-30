@@ -41,7 +41,8 @@ class Logger():
             global wandb
             import wandb
             wandb.init(name=logname)
-
+            self.wandb = wandb
+            
     def get_log_path(self):
         return self.dir
 
