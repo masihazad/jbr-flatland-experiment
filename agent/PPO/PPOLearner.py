@@ -160,8 +160,8 @@ class PPOLearner():
             if cur_episode % 100 == 0:
                 log().save_logs()
             if cur_episode % 250 == 0:                               
-                self.controller.save_controller(log().get_log_path(), cur_episode, 'final_controller.torch')
-                self.judge.save_judge(log().get_log_path(), cur_episode, 'final_judge.torch')
+                self.controller.save_controller(log().get_log_path(), 'final_controller.torch')
+                self.judge.save_judge(log().get_log_path(), 'final_judge.torch')
                 if log().use_wandb:
                     self.save_model(cur_episode)
 
