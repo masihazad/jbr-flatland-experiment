@@ -15,12 +15,16 @@ from agent.PPO.PPOLosses import value_loss, policy_loss, value_loss_with_IS
 from agent.judge.Judge import Judge
 from logger import log
 
+from datetime import datetime
+import wandb
+
 class PPOLearner():
     def __init__(self, env_config, controller_config, n_workers, device):
         self.n_workers = n_workers
         self.controller = controller_config.create_controller(device)
         self.judge = env_config.env_configs[0].observation_builder_config.timetable_config.create_timetable() # ugly
         self.device = device
+        self.run = wandb.init(project='jbr-flatland-experiment')
 
         num_gpus = 0
         if device == torch.device("cuda"):
@@ -128,9 +132,22 @@ class PPOLearner():
 
             if cur_episode % 100 == 0:
                 log().save_logs()
-            if cur_episode % 250 == 0:
-                self.controller.save_controller(log().get_log_path(), "final_controller.torch")
-                self.judge.save_judge(log().get_log_path(), "final_judge.torch")
+            if cur_episode % 20 == 0:                
+                date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
+                cont_checkpoint_name = 'controller' + str(cur_episode) + str(date) + '.torch'
+                judge_checkpoint_name = 'judge' + str(cur_episode) + str(date) + '.torch'
+                
+                # self.controller.save_controller(log().get_log_path(), "final_controller.torch")
+                self.controller.save_controller(log().get_log_path(), "controller" + date + ".torch")
+                # self.judge.save_judge(log().get_log_path(), cont_checkpoint_name)
+                self.judge.save_judge(log().get_log_path(), judge_checkpoint_name)
+                
+                artifact = wandb.Artifact('model', type='model')
+                artifact.add_file(log().get_log_path(), cont_checkpoint_name)
+                artifact.add_file(log().get_log_path(), judge_checkpoint_name)
+                run.log_artifact(artifact)
+                run.join()
+
             if self.train_state.is_training():
                 self._optimize(rollout)
                 #  judge_info = self.judge.optimize(judge_rollout)
