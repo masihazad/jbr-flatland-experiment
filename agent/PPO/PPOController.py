@@ -107,8 +107,8 @@ class PPOController():
 
     def save_controller(self, dirpath, name="controller.torch"):
         torch.save(self.params, os.path.join(dirpath, "params.torch"))
-        # actor_state_dict, critic_state_dict, _ = self.get_net_params(device=torch.device("cpu"))
-        actor_state_dict, critic_state_dict, _ = self.get_net_params(device=self.device)
+        actor_state_dict, critic_state_dict, _ = self.get_net_params(device=torch.device("cpu"))
+        # actor_state_dict, critic_state_dict, _ = self.get_net_params(device=self.device)
         torch.save({'actor': actor_state_dict, 'critic': critic_state_dict},
                 os.path.join(dirpath, name))
 
